@@ -1,9 +1,8 @@
-use crate::models::dir::{VDir, HDir};
+use crate::models::board::BoardCell;
+use crate::models::dir::{HDir, VDir};
 
-
-pub type MatrixBody = Vec<Vec<u8>>;
+pub type MatrixBody = Vec<Vec<BoardCell>>;
 type Indexes = [usize; 4];
-
 
 #[derive(Debug)]
 pub struct Matrix {
@@ -32,7 +31,7 @@ impl Matrix {
                     v_range_vec.into_iter().rev().collect::<Vec<_>>(),
                 )
                 .into_iter()
-                .fold(vec![vec![0; height]; width], read_backward);
+                .fold(vec![vec![BoardCell::Empty; height]; width], read_backward);
                 Matrix { body }
             }
             (VDir::Top, HDir::Right) => {
@@ -41,14 +40,14 @@ impl Matrix {
                     v_range_vec,
                 )
                 .into_iter()
-                .fold(vec![vec![0; height]; width], read_backward);
+                .fold(vec![vec![BoardCell::Empty; height]; width], read_backward);
                 Matrix { body }
             }
             _ => unimplemented!(),
         }
     }
 
-    fn size(&self) -> (usize, usize) {
+    pub fn size(&self) -> (usize, usize) {
         (self.body.len(), self.body[0].len())
     }
 
@@ -65,5 +64,16 @@ impl Matrix {
 
     pub fn body(&self) -> &MatrixBody {
         &self.body
+    }
+
+    pub fn slice(
+        &self,
+        (top, left): (usize, usize),
+        (bottom, right): (usize, usize),
+    ) -> MatrixBody {
+        self.body[top..bottom]
+            .into_iter()
+            .map(|row| row[left..right].to_vec())
+            .collect()
     }
 }

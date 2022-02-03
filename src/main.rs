@@ -1,9 +1,12 @@
-use crate::models::shape;
+#![allow(unused)]
+
 mod models;
 
 fn main() {
-    // let shape1 = shape::Shape::<3> {
-    //     matrix: [[0, 1, 0], [1, 1, 1], [0, 0, 0]],
-    // };
-    // println!("{:?}", shape1);
+    // println!(
+    //     "Hello, world {}!",
+    //     exercises::assembly_line::working_items_per_minute(10)
+    // );
+    // exercises::health_statistics::test_link()
+    // println!("{}", exercises::clock::Clock::new(25, 60))
 }
