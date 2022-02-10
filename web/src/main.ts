@@ -9,38 +9,40 @@ const usize = 24
 const width = usize * BOARD_SIZE.x
 const height = usize * BOARD_SIZE.y
 
-
-try {
-  const $app = document.querySelector<HTMLDivElement>('#app')
-  const $container = $app?.querySelector<HTMLDivElement>('#container')
-  const $controls = $app?.querySelector<HTMLDivElement>('#controls')
-  const $canvasOverlay = $app?.querySelector<HTMLDivElement>('#canvas-overlay')
-  const $canvas = $app?.querySelector<HTMLCanvasElement>('#canvas')
-
-  assertHtmlElement($container, 'container')
-  assertHtmlElement($controls, 'controls')
-  assertHtmlElement($canvasOverlay, 'canvas-overlay')
-  assertHtmlElement($canvas, 'canvas')
-
-  $canvas.width = width * 2
-  $canvas.height = height * 2
-  $canvas.style.setProperty('--ratio', (BOARD_SIZE.x / BOARD_SIZE.y).toString())
+async function main() {
+  try {
+    const $app = document.querySelector<HTMLDivElement>('#app')
+    const $container = $app?.querySelector<HTMLDivElement>('#container')
+    const $controls = $app?.querySelector<HTMLDivElement>('#controls')
+    const $canvasOverlay = $app?.querySelector<HTMLDivElement>('#canvas-overlay')
+    const $canvas = $app?.querySelector<HTMLCanvasElement>('#canvas')
   
-  const tetris = new ContcreteTetris()
-  const service = new GameService(tetris, 1000)
-
-  const state = new ConcrecetGameStateExtended();
-  service.state = state
+    assertHtmlElement($container, 'container')
+    assertHtmlElement($controls, 'controls')
+    assertHtmlElement($canvasOverlay, 'canvas-overlay')
+    assertHtmlElement($canvas, 'canvas')
   
-  const view = new GameView();
-  view.addComponent(new CanvasRenderer($canvas))
-  view.addComponent(new CanvasOverlayRenderer($canvasOverlay))
-  view.addComponent(new ControlsRenderer($controls))
-
-  service.view = view
-  service.view = view
-  await service.load()
-  service.create()
-} catch (e){
-  console.error(e)
+    $canvas.width = width * 2
+    $canvas.height = height * 2
+    $canvas.style.setProperty('--ratio', (BOARD_SIZE.x / BOARD_SIZE.y).toString())
+    
+    const tetris = new ContcreteTetris()
+    const service = new GameService(tetris, 1000)
+  
+    const state = new ConcrecetGameStateExtended();
+    service.state = state
+    
+    const view = new GameView();
+    view.addComponent(new CanvasRenderer($canvas))
+    view.addComponent(new CanvasOverlayRenderer($canvasOverlay))
+    view.addComponent(new ControlsRenderer($controls))
+  
+    service.view = view
+    service.view = view
+    await service.load()
+    service.create()
+  } catch (e){
+    console.error(e)
+  }
 }
+main();
