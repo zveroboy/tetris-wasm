@@ -1,17 +1,73 @@
 import invariant from 'invariant';
 import EventEmitter from 'eventemitter3';
 import { Cell } from "./drawable";
-import { BoardCell, GameStateExtended, GameStatus } from "./state";
-import { assertHtmlElement } from './error';
+// import { BoardCell, GameStateExtended, GameStatus } from "./state";
+import { assertHtmlElement } from './errors';
+import type { Component, GameStateExtended, Presenter, View } from './types';
+import { BoardCell, GameStatus } from './enums';
 
-export interface Renderer extends EventEmitter {
-  render(state: GameStateExtended): void
+
+export class GameView implements View {
+  private _presenter?: Presenter
+  private components: Component[] = []
+
+  get presenter(): Presenter | undefined {
+    return this._presenter
+  }
+
+  set presenter(value: Presenter | undefined) {
+    this._presenter = value
+  }
+  
+  render(state: GameStateExtended) {
+    this.components.forEach((c) => c.render(state))
+  }
+
+  addComponent(component: Component): void {
+    component.view = this
+    this.components.push(component)
+  }
+
+  addListeners() {
+    document.addEventListener('keydown', this.keyListener)
+  }
+
+  removeListeners() {
+    document.removeEventListener('keydown', this.keyListener)
+  }
+
+  keyListener = ({ code }: KeyboardEvent) => {
+    if (code === 'ArrowUp') {
+      this.presenter?.rotate()
+    } else if (code === 'ArrowLeft') {
+      this.presenter?.moveLeft()
+    } else if (code === 'ArrowRight') {
+      this.presenter?.moveRight()
+    } else if (code === 'ArrowDown') {
+      this.presenter?.moveDown()
+    }
+  }
+
+  start = () => {
+    this.presenter?.start()
+  }
+  
+  pause = () => {
+    this.presenter?.pause()
+  }
+  
+  resume = () => {
+    this.presenter?.resume()
+  }
+
+  restart = () => {
+    this.presenter?.restart()
+  }
 }
 
-export class CanvasRenderer extends EventEmitter implements Renderer {
+export class CanvasRenderer implements Component {
   protected ctx: CanvasRenderingContext2D
   constructor(root: HTMLCanvasElement){
-    super()
     const context = root.getContext('2d')
     invariant(context, 'Context is null');
     this.ctx = context
@@ -48,7 +104,7 @@ export class CanvasRenderer extends EventEmitter implements Renderer {
   }
 }
 
-export class CanvasOverlayRenderer extends EventEmitter implements Renderer {
+export class CanvasOverlayRenderer extends EventEmitter implements Component {
   constructor(
     private root: HTMLDivElement
   ){
@@ -68,7 +124,8 @@ export class CanvasOverlayRenderer extends EventEmitter implements Renderer {
   }
 }
 
-export class ControlsRenderer extends EventEmitter implements Renderer {
+export class ControlsRenderer implements Component {
+  private _view?: View
   private $start!: HTMLButtonElement
   private $pause!: HTMLButtonElement
   private $resume!: HTMLButtonElement
@@ -76,7 +133,6 @@ export class ControlsRenderer extends EventEmitter implements Renderer {
   constructor(
     private root: HTMLElement
   ){
-    super();
     const $start = this.root.querySelector<HTMLButtonElement>('[data-type="start"]')
     const $pause = this.root.querySelector<HTMLButtonElement>('[data-type="pause"]')
     const $resume = this.root.querySelector<HTMLButtonElement>('[data-type="resume"]')
@@ -91,15 +147,32 @@ export class ControlsRenderer extends EventEmitter implements Renderer {
     this.$pause = $pause
     this.$resume = $resume
     this.$restart = $restart
+  }
 
+  get view(){
+    return this._view
+  }
+  
+  set view(value: View | undefined) {
+    this.removeListeners();
+    this._view = value
     this.addListeners()
   }
 
   addListeners(){
-    this.$start.addEventListener('click', ()=> this.emit('start'))
-    this.$pause.addEventListener('click', ()=> this.emit('pause'))
-    this.$resume.addEventListener('click', ()=> this.emit('resume'))
-    this.$restart.addEventListener('click', ()=> this.emit('restart'))
+    if(!this.view) return
+    this.$start.addEventListener('click', this.view.start)
+    this.$pause.addEventListener('click', this.view.pause)
+    this.$resume.addEventListener('click', this.view.resume)
+    this.$restart.addEventListener('click', this.view.restart)
+  }
+
+  removeListeners(){
+    if(!this.view) return
+    this.$start.removeEventListener('click', this.view.start)
+    this.$pause.removeEventListener('click', this.view.pause)
+    this.$resume.removeEventListener('click', this.view.resume)
+    this.$restart.removeEventListener('click', this.view.restart)
   }
 
   render(state: GameStateExtended){

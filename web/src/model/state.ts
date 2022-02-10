@@ -1,45 +1,34 @@
-export enum GameStatus {
-  Pending = 0,
-  InProgress = 1,
-  Over = 2
-}
-
-export enum BoardCell {
-  Empty = 0,
-  Filled = 1
-}
-
-export interface GameState {
-  blocks: BoardCell[][],
-  status: GameStatus
-}
-
-export interface GameStateExtended extends GameState {
-  paused: boolean
-  traverse(): Generator<[number, number]>
-  updateGameState(state: GameState): ConcrecetGameStateExtended
-  updatePaused(paused: boolean): ConcrecetGameStateExtended
-}
+import EventEmitter from 'eventemitter3';
+import { BoardCell, GameStatus } from './enums';
+import { GameEventTypes, GameState, GameStateExtended } from './types';
 
 export class ConcrecetGameStateExtended implements GameStateExtended {
   paused = false
   blocks: BoardCell[][] = []
   status!: GameStatus
+  emitter = new EventEmitter<GameEventTypes>()
+  
+  updateGameState(state: GameState) {
+    const isOver = this.status !== GameStatus.Over && state.status === GameStatus.Over
+    Object.assign(this, state)
+    if(isOver){
+      this.emitter.emit('over', this)
+      return
+    }
+    this.emitter.emit('next', this)
+  }
+  
+  updatePaused(paused: boolean) {
+    this.paused = paused
+    this.emitter.emit(paused ? 'paused' : 'resumed', this)
+  }
 
-  constructor(state: GameState){
-    Object.assign(this, state);
+  subscribe(type: GameEventTypes, fn: (...args: any)=>void){
+    this.emitter.on(type, fn)
   }
-  
-  updateGameState(state: GameState): ConcrecetGameStateExtended {
-    return this.patch(state)
-  }
-  
-  updatePaused(paused: boolean): ConcrecetGameStateExtended {
-    return this.patch({paused})
-  }
-  
-  patch(patch: Partial<ConcrecetGameStateExtended>): ConcrecetGameStateExtended{
-    return Object.assign(Object.create(Object.getPrototypeOf(this)), this, patch)
+
+  unbscribe(type: GameEventTypes, fn: (...args: any)=>void){
+    this.emitter.off(type, fn)
   }
 
   *traverse(): Generator<[number, number]> {

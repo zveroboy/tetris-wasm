@@ -1,67 +1,81 @@
-import { Renderer } from "./renderer"
-import { GameStateExtended, GameStatus } from "./state"
 import { Tetris } from "./tetris"
+import { GameStateExtended, Presenter, View } from "./types"
 
-export class GameService {
+export class GamePresenter implements Presenter {
   private interval: number | null = null
+  private _view?: View
+  private _state?: GameStateExtended
 
   constructor(    
     private game: Tetris,
-    private renderers: Renderer[],
     private step: number
   ) {
-    this.game.on('changed', this.handleStateChange)
-    this.renderers.forEach((r)=>{
-      r.on('start', () => this.start())
-      r.on('pause', () => this.game.pause())
-      r.on('resume', () => this.game.resume())
-      r.on('restart', () => this.restart())
-    })
+    
   }
 
-  load() {
+  get view(): View | undefined {
+    return this._view
+  }
+  
+  set view(value: View | undefined) {
+    this._view && (this._view.presenter = undefined)
+    this._view = value
+    this._view && (this._view.presenter = this)
+  }
+
+  get state(){
+    return this._state
+  }
+  
+  set state(value: GameStateExtended | undefined) {
+    if(this._state){
+      this._state.subscribe('next', this.render)
+      this._state.subscribe('paused', this.handlePaused)
+      this._state.subscribe('resumed', this.handleResumed)
+      this._state.subscribe('over', this.stop)
+    }
+    this._state = value
+    value?.subscribe('next', this.render)
+    value?.subscribe('paused', this.handlePaused)
+    value?.subscribe('resumed', this.handleResumed)
+    value?.subscribe('over', this.stop)
+  }
+
+  load(): void {
     return this.game.load()
   }
 
-  handleStateChange = (prev: GameStateExtended, cur: GameStateExtended) => {
-    if (prev.status !== GameStatus.Over && cur.status === GameStatus.Over) {
-      this.stop()
-    } else if (!prev.paused && cur.paused) {
-      this.clearInterval()
-    } else if (prev.paused && !cur.paused) {
-      this.setInterval()
-    }
-
-    this.render(cur)
+  rotate(){
+    this.state?.updateGameState(this.game.rotate())
   }
 
-  addListeners() {
-    document.addEventListener('keydown', this.keyListener)
+  moveLeft(){
+    this.state?.updateGameState(this.game.moveLeft())
   }
 
-  removeListeners() {
-    document.removeEventListener('keydown', this.keyListener)
+  moveRight(){
+    this.state?.updateGameState(this.game.moveRight())
   }
 
-  keyListener = ({ code }: KeyboardEvent) => {
-    if (code === 'ArrowUp') {
-      this.game.rotate()
-    } else if (code === 'ArrowLeft') {
-      this.game.moveLeft()
-    } else if (code === 'ArrowRight') {
-      this.game.moveRight()
-    } else if (code === 'ArrowDown') {
-      this.game.moveDown()
-    }
+  moveDown(){
+    this.state?.updateGameState(this.game.moveDown())
   }
 
   create(){
-    this.game.create()
+    this.state?.updateGameState(this.game.create())
   }
 
-  start = () => {
-    this.addListeners()
-    this.game.start()
+  pause(){
+    this.state?.updatePaused(true)
+  }
+
+  resume(){
+    this.state?.updatePaused(false)
+  }
+
+  start() {
+    this.view?.addListeners()
+    this.state?.updateGameState(this.game.start())
     this.setInterval()
   }
 
@@ -70,21 +84,36 @@ export class GameService {
     this.start()
   } 
 
-  stop = () => {
+  stop = (state: GameStateExtended) => {
     this.clearInterval()
-    this.removeListeners()
+    this.view?.removeListeners()
+    this.render(state)
   }
 
-  setInterval = () => {
-    this.interval = setInterval(this.game.tick, this.step)
+  handlePaused = (state: GameStateExtended): void => {
+    this.clearInterval()
+    this.render(state)
   }
 
-  clearInterval = () => {
+  handleResumed = (state: GameStateExtended): void => {
+    this.setInterval()
+    this.render(state)
+  }
+
+  render = (state: GameStateExtended): void => {
+    this.view?.render(state)
+  }
+
+  tick = () => {
+    this.state?.updateGameState(this.game.tick())
+  }
+
+  setInterval(): void {
+    this.interval = setInterval(this.tick, this.step)
+  }
+
+  clearInterval(): void {
     this.interval && clearInterval(this.interval)
     this.interval = null
-  }
-
-  render = (state: GameStateExtended) => {
-    this.renderers.forEach((r) => r.render(state))
   }
 }

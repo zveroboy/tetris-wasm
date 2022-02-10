@@ -1,80 +1,52 @@
 import init, {Game} from "tetris-wasm"
-import EventEmitter from 'eventemitter3';
-import {ConcrecetGameStateExtended, GameStateExtended} from './state'
+import { GameState } from "./types"
 
-export interface Tetris extends EventEmitter {
+export interface Tetris {
   load(): void
 
-  create(): void
+  create(): GameState
 
-  start(): void
-  tick(): void
-  
-  resume(): void
-  pause(): void
+  start(): GameState
+  tick(): GameState
 
-  rotate(): void
-  moveLeft(): void
-  moveRight(): void
-  moveDown(): void
+  rotate(): GameState
+  moveLeft(): GameState
+  moveRight(): GameState
+  moveDown(): GameState
 }
 
 
-export class ContcreteTetris extends EventEmitter implements Tetris {
+export class ContcreteTetris implements Tetris {
   private game!: Game
-  private _state!: GameStateExtended
-
-  constructor() {
-    super()
-  }
-
-  get state(): GameStateExtended {
-    return this._state
-  }
-  
-  set state(newState: GameStateExtended) {
-    const oldState = this._state
-    this._state = newState
-    this.emit('changed', oldState, this._state)
-  }
 
   load = init
 
   create(){
     this.game = Game.new()
-    this._state = new ConcrecetGameStateExtended(this.game.to_js())
-    this.state = this._state // initial emit
+    return this.game.to_js()
   }
 
-  tick = () => {
-    this.state = this.state.updateGameState(this.game.tick())
+  start = (): GameState => {
+    return this.game.start()
   }
 
-  rotate = () => {
-    this.state = this.state.updateGameState(this.game.rotate())
-  }
-  
-  moveLeft = () => {
-    this.state = this.state.updateGameState(this.game.move_left())
-  }
-  
-  moveRight = () => {
-    this.state = this.state.updateGameState(this.game.move_right())
-  }
-  
-  moveDown = () => {
-    this.state = this.state.updateGameState(this.game.move_down())
+  tick = (): GameState => {
+    return this.game.tick()
   }
 
-  start = () => {
-    this.state = this.state.updateGameState(this.game.start())
-  }
-
-  resume = () =>{
-    this.state = this.state.updatePaused(false)
+  rotate = (): GameState => {
+    return this.game.rotate()
   }
   
-  pause = () => {
-    this.state = this.state.updatePaused(true)
+  moveLeft = (): GameState => {
+    return this.game.move_left()
+  }
+  
+  moveRight = (): GameState => {
+    return this.game.move_right()
+  }
+  
+  moveDown = (): GameState => {
+    return this.game.move_down()
   }
 }

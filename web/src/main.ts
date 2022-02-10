@@ -1,7 +1,8 @@
-import { assertHtmlElement } from './model/error';
-import { GameService } from './model/game';
-import { CanvasOverlayRenderer, CanvasRenderer, ControlsRenderer } from "./model/renderer";
+import { assertHtmlElement } from './model/errors';
+import { GamePresenter as GameService } from './model/game';
+import { CanvasOverlayRenderer, CanvasRenderer, ControlsRenderer, GameView } from "./model/views";
 import { ContcreteTetris } from "./model/tetris";
+import { ConcrecetGameStateExtended } from './model/state';
 
 export const BOARD_SIZE = Object.freeze({ x: 10, y: 18 })
 const usize = 24
@@ -26,14 +27,18 @@ try {
   $canvas.style.setProperty('--ratio', (BOARD_SIZE.x / BOARD_SIZE.y).toString())
   
   const tetris = new ContcreteTetris()
-  const service = new GameService(
-    tetris, 
-    [
-      new CanvasRenderer($canvas), 
-      new CanvasOverlayRenderer($canvasOverlay), 
-      new ControlsRenderer($controls)], 
-    1000
-  )
+  const service = new GameService(tetris, 1000)
+
+  const state = new ConcrecetGameStateExtended();
+  service.state = state
+  
+  const view = new GameView();
+  view.addComponent(new CanvasRenderer($canvas))
+  view.addComponent(new CanvasOverlayRenderer($canvasOverlay))
+  view.addComponent(new ControlsRenderer($controls))
+
+  service.view = view
+  service.view = view
   await service.load()
   service.create()
 } catch (e){
