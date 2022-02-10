@@ -212,17 +212,17 @@ mod tests {
         assert_eq!(scene.place_figure_on_board(), Board::from(compare));
     }
 
-    #[test]
-    #[ignore]
-    fn check_if_shape_crosses_border_on_rotation() {
-        unimplemented!()
-    }
+    // #[test]
+    // #[ignore]
+    // fn check_if_shape_crosses_border_on_rotation() {
+    //     unimplemented!()
+    // }
 
-    #[test]
-    #[ignore]
-    fn check_if_shape_crosses_block_heap() {
-        unimplemented!()
-    }
+    // #[test]
+    // #[ignore]
+    // fn check_if_shape_crosses_block_heap() {
+    //     unimplemented!()
+    // }
 
     #[test]
     fn check_game_over() {
