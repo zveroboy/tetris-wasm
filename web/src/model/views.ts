@@ -113,7 +113,10 @@ export class CanvasOverlayRenderer extends EventEmitter implements Component {
 
   render(state: GameStateExtended){
     if (state.status === GameStatus.Pending) {
-      this.root.dataset.text = 'Press "Start"'
+      this.root.dataset.text = `
+    Press "Start".
+  Use arrow keys
+    to move and rotate the figure.`
     } else if (state.status === GameStatus.Over) {
       this.root.dataset.text = 'Game over'
     } else if (state.paused) {
