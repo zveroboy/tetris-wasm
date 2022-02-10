@@ -1,4 +1,3 @@
-// use super::block_heap::BlockHeap;
 use super::board::{Board, BoardCell, BOARD_HEIGHT, BOARD_WIDTH};
 use super::dir::{HDir, VDir};
 use super::matrix::MatrixBody;
@@ -22,9 +21,13 @@ impl Scene {
         self.block_heap.merge_with(&board)
     }
 
-    fn reset_figure(&mut self) {
+    pub fn credit(&mut self) {
+        self.merge();
+        self.remove_filled_lines();
+    }
+
+    pub fn reset_figure(&mut self) {
         self.shape = Shape::random();
-        if self.check_shape_intersects_heap() {}
     }
 
     fn place_figure_on_board(&self) -> Board {
@@ -50,40 +53,10 @@ impl Scene {
         Board::from(board_matrix)
     }
 
-    fn merge(&mut self) {
+    pub fn merge(&mut self) {
         let board = self.place_figure_on_board();
         self.block_heap = self.block_heap.merge_with(&board)
     }
-
-    // fn check_shape_crosses_borders(&self) -> bool {
-    //     let Shape { x, y, matrix } = &self.shape;
-    //     let (height, width) = matrix.size();
-
-    //     let slice: Option<MatrixBody> = if *x < 0 {
-    //         Some(matrix.slice((0, 0), (height, -x as usize)))
-    //     } else if (BOARD_WIDTH as i8) < (width as i8) + x {
-    //         let start_x = width + (*x as usize) - BOARD_WIDTH;
-    //         Some(
-    //             matrix
-    //                 .slice((0, width - start_x), (height, width)),
-    //         )
-    //     } else if (BOARD_HEIGHT as i8) < (height as i8) + y {
-    //         let start_y = height + (*y as usize) - BOARD_HEIGHT;
-    //         Some(
-    //             matrix
-    //                 .slice((height - start_y, 0), (height, width)),
-    //         )
-    //     } else {
-    //         None
-    //     };
-
-    //     match slice {
-    //         Some(slice) => slice
-    //             .iter()
-    //             .any(|row| row.iter().any(|&c| c != BoardCell::Empty)),
-    //         None => false,
-    //     }
-    // }
 
     fn check_shape_crosses_h_borders(&self) -> bool {
         let Shape { x, y: _, matrix } = &self.shape;
@@ -122,7 +95,7 @@ impl Scene {
             .all(|r| r.iter().all(|&c| c == BoardCell::Empty))
     }
 
-    fn check_shape_intersects_heap(&self) -> bool {
+    pub fn check_shape_intersects_heap(&self) -> bool {
         let board = self.place_figure_on_board();
         self.block_heap.check_intersects_with(&board)
     }
@@ -134,14 +107,17 @@ impl Scene {
         }
     }
 
-    pub fn move_figure_y(&mut self, dy: i8) {
+    // TODO: split for 2 functions. extract creation logic
+    pub fn move_figure_y(&mut self, dy: i8) -> bool {
         self.shape.move_y(dy);
         if self.check_shape_crosses_v_borders() || self.check_shape_intersects_heap() {
             self.shape.move_y(-dy);
-            self.merge();
-            self.remove_filled_lines();
-            self.reset_figure();
+            return true
+            // self.merge();
+            // self.remove_filled_lines();
+            // return self.reset_figure();
         }
+        false
     }
 
     pub fn rotate_figure(&mut self) {
@@ -155,15 +131,16 @@ impl Scene {
     }
 
     pub fn remove_filled_lines(&mut self) {
-        let filled = self.block_heap
+        let filled = self
+            .block_heap
             .iter()
             .enumerate()
-            .filter(|(_, row)| {
-                row.iter().all(|&c| c == BoardCell::Filled)
-            })
+            .filter(|(_, row)| row.iter().all(|&c| c == BoardCell::Filled))
             .map(|(r, _)| r)
             .collect::<Vec<_>>();
-        filled.into_iter().for_each(|r| self.block_heap.remove_line(r));
+        filled
+            .into_iter()
+            .for_each(|r| self.block_heap.remove_line(r));
     }
 }
 
@@ -214,7 +191,7 @@ mod tests {
     }
 
     #[test]
-    // #[ignore]
+    #[ignore]
     fn check_place_figure_on_board() {
         let mut scene = Scene::new();
         scene.shape = Shape::new(Shape::clone(Shape::get_named("shape0")));
@@ -245,5 +222,30 @@ mod tests {
     #[ignore]
     fn check_if_shape_crosses_block_heap() {
         unimplemented!()
+    }
+
+    #[test]
+    fn check_game_over() {
+        let mut scene = Scene::new();
+        let shape = Shape::get_named("shape2");
+        let mut heap_height: usize = shape.len();
+        loop {
+            if heap_height > BOARD_HEIGHT {
+                break;
+            }
+
+            scene.shape = Shape::new(Shape::clone(shape));
+            let steps = BOARD_HEIGHT - heap_height;
+            for _ in 0..steps { 
+                assert!(!scene.move_figure_y(1)); 
+            }
+            assert!(scene.move_figure_y(1));
+            scene.credit();
+            let (hight, _) = scene.shape.matrix.size();
+            heap_height += hight;
+        }
+
+        scene.shape = Shape::new(Shape::clone(shape));
+        assert!(scene.check_shape_intersects_heap())
     }
 }

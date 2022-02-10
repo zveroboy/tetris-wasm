@@ -11,7 +11,7 @@
       "cargo": {
         "args": [
           "test",
-          "check_remove_line",
+          "check_game_over",
           "--no-run",
           // "--lib",
           "--bin=tetris-wasm",

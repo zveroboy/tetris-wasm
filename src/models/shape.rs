@@ -6,7 +6,7 @@ use std::fmt::Debug;
 
 // use super::matrix::MatrixBody;
 
-static SHAPES: [&'static [&'static [BoardCell]]; 2] = [
+static SHAPES: [&'static [&'static [BoardCell]]; 7] = [
     // [0, 1, 0],
     // [1, 1, 1],
     // [0, 0, 0],
@@ -45,6 +45,44 @@ static SHAPES: [&'static [&'static [BoardCell]]; 2] = [
             BoardCell::Empty,
         ],
     ],
+    // [1, 1],
+    // [1, 1],
+    &[
+        &[BoardCell::Filled, BoardCell::Filled],
+        &[BoardCell::Filled, BoardCell::Filled],
+    ],
+    // [1, 1, 0],
+    // [0, 1, 1],
+    // [0, 0, 0],
+    &[
+        &[BoardCell::Filled, BoardCell::Filled, BoardCell::Empty],
+        &[BoardCell::Empty, BoardCell::Filled, BoardCell::Filled],
+        &[BoardCell::Empty, BoardCell::Empty, BoardCell::Empty],
+    ],
+    // [0, 1, 1],
+    // [1, 1, 0],
+    // [0, 0, 0],
+    &[
+        &[BoardCell::Empty, BoardCell::Filled, BoardCell::Filled],
+        &[BoardCell::Filled, BoardCell::Filled, BoardCell::Empty],
+        &[BoardCell::Empty, BoardCell::Empty, BoardCell::Empty],
+    ],
+    // [1, 0, 0],
+    // [1, 1, 1],
+    // [0, 0, 0],
+    &[
+        &[BoardCell::Filled, BoardCell::Empty, BoardCell::Empty],
+        &[BoardCell::Filled, BoardCell::Filled, BoardCell::Filled],
+        &[BoardCell::Empty, BoardCell::Empty, BoardCell::Empty],
+    ],
+    // [0, 0, 1],
+    // [1, 1, 1],
+    // [0, 0, 0],
+    &[
+        &[BoardCell::Empty, BoardCell::Empty, BoardCell::Filled],
+        &[BoardCell::Filled, BoardCell::Filled, BoardCell::Filled],
+        &[BoardCell::Empty, BoardCell::Empty, BoardCell::Empty],
+    ],
 ];
 
 // pub enum ShapeNames {
@@ -78,6 +116,11 @@ impl Shape {
         match name {
             "shape0" => SHAPES[0],
             "shape1" => SHAPES[1],
+            "shape2" => SHAPES[2],
+            "shape3" => SHAPES[3],
+            "shape4" => SHAPES[4],
+            "shape5" => SHAPES[5],
+            "shape6" => SHAPES[6],
             _ => panic!("Unknown shape"),
         }
     }

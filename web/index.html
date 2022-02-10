@@ -3,11 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" type="text/css" href="/src/style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite App</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app" class="blueprint">
+      <div id="container" class="container">
+        <h2 class="title">TETRIS</h2>
+        <div id="canvas-overlay" class="canvas-container">
+          <canvas id="canvas" class="canvas"></canvas>
+        </div>
+        <div id="controls" class="controls">
+          <button type="button" data-type="start" class="button">Start</button>
+          <button type="button" data-type="pause" class="button">Pause</button>
+          <button type="button" data-type="resume" class="button">Resume</button>
+          <button type="button" data-type="restart" class="button">Restart</button>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

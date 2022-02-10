@@ -7,9 +7,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "eventemitter3": "^4.0.7",
+    "invariant": "^2.2.4",
     "tetris-wasm": "link:../pkg"
   },
   "devDependencies": {
+    "@types/invariant": "^2.2.35",
     "typescript": "^4.4.4",
     "vite": "^2.7.2"
   }
