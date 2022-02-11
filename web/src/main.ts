@@ -30,7 +30,7 @@ async function main() {
     
     const state = new ConcrecetGameStateExtended();
 
-    const view = new GameView();
+    const view = new GameView(document);
     
     view.addComponent(new CanvasRenderer(view, $canvas))
     view.addComponent(new CanvasOverlayRenderer(view, $canvasOverlay))

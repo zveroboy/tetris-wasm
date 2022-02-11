@@ -6,9 +6,18 @@ import { assertHtmlElement } from './errors';
 import type { Component, GameStateExtended, View, ViewEventTypes } from './types';
 import { BoardCell, GameStatus } from './enums';
 
+const KEY_2_EVENT: Record<string, ViewEventTypes> = Object.freeze({
+  ArrowUp: 'rotate',
+  ArrowLeft: 'moveLeft',
+  ArrowRight: 'moveRight',
+  ArrowDown: 'moveDown',
+})
+
 export class GameView implements View {
   private components: Component[] = []
   private emitter = new EventEmitter<ViewEventTypes>()
+
+  constructor(private root: Document){}
 
   on = this.emitter.on.bind(this.emitter)
 
@@ -23,40 +32,24 @@ export class GameView implements View {
   }
 
   addListeners() {
-    document.addEventListener('keydown', this.keyListener)
+    this.root.addEventListener('keydown', this.keyListener)
   }
 
   removeListeners() {
-    document.removeEventListener('keydown', this.keyListener)
+    this.root.removeEventListener('keydown', this.keyListener)
   }
 
   keyListener = ({ code }: KeyboardEvent) => {
-    if (code === 'ArrowUp') {
-      this.emitter.emit('rotate')
-    } else if (code === 'ArrowLeft') {
-      this.emitter.emit('moveLeft')
-    } else if (code === 'ArrowRight') {
-      this.emitter.emit('moveRight')
-    } else if (code === 'ArrowDown') {
-      this.emitter.emit('moveDown')
-    }
+    code in KEY_2_EVENT && this.emitter.emit(KEY_2_EVENT[code])
   }
 
-  start = () => {
-    this.emitter.emit('start')
-  }
+  start = () => this.emitter.emit('start')
   
-  pause = () => {
-    this.emitter.emit('pause')
-  }
+  pause = () => this.emitter.emit('pause')
   
-  resume = () => {
-    this.emitter.emit('resume')
-  }
+  resume = () => this.emitter.emit('resume')
 
-  restart = () => {
-    this.emitter.emit('restart')
-  }
+  restart = () => this.emitter.emit('restart')
 }
 
 export class CanvasRenderer implements Component {
