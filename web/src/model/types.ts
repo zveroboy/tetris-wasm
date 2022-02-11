@@ -10,6 +10,7 @@ export type GameEventTypes = 'next' | 'paused' | 'resumed' | 'over'
 export interface GameStateExtended extends GameState {
   paused: boolean
   subscribe(type: GameEventTypes, fn: (...args: any)=>void): void
+  unsubscribe(type: GameEventTypes, fn: (...args: any)=>void): void
   updateGameState(state: GameState): void
   updatePaused(paused: boolean): void
   traverse(): Generator<[number, number]>

@@ -1,7 +1,5 @@
 import invariant from 'invariant';
-import EventEmitter from 'eventemitter3';
 import { Cell } from "./drawable";
-// import { BoardCell, GameStateExtended, GameStatus } from "./state";
 import { assertHtmlElement } from './errors';
 import type { Component, GameStateExtended, Presenter, View } from './types';
 import { BoardCell, GameStatus } from './enums';
@@ -104,11 +102,10 @@ export class CanvasRenderer implements Component {
   }
 }
 
-export class CanvasOverlayRenderer extends EventEmitter implements Component {
+export class CanvasOverlayRenderer implements Component {
   constructor(
     private root: HTMLDivElement
   ){
-    super();
   }
 
   render(state: GameStateExtended){

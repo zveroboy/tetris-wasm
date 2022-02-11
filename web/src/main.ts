@@ -1,5 +1,5 @@
 import { assertHtmlElement } from './model/errors';
-import { GamePresenter as GameService } from './model/game';
+import { GamePresenter as GamePresenter } from './model/game';
 import { CanvasOverlayRenderer, CanvasRenderer, ControlsRenderer, GameView } from "./model/views";
 import { ContcreteTetris } from "./model/tetris";
 import { ConcrecetGameStateExtended } from './model/state';
@@ -27,20 +27,19 @@ async function main() {
     $canvas.style.setProperty('--ratio', (BOARD_SIZE.x / BOARD_SIZE.y).toString())
     
     const tetris = new ContcreteTetris()
-    const service = new GameService(tetris, 1000)
+    const presenter = new GamePresenter(tetris, 1000)
   
     const state = new ConcrecetGameStateExtended();
-    service.state = state
+    presenter.state = state
     
     const view = new GameView();
     view.addComponent(new CanvasRenderer($canvas))
     view.addComponent(new CanvasOverlayRenderer($canvasOverlay))
     view.addComponent(new ControlsRenderer($controls))
   
-    service.view = view
-    service.view = view
-    await service.load()
-    service.create()
+    presenter.view = view
+    await presenter.load()
+    presenter.create()
   } catch (e){
     console.error(e)
   }

@@ -27,7 +27,7 @@ export class ConcrecetGameStateExtended implements GameStateExtended {
     this.emitter.on(type, fn)
   }
 
-  unbscribe(type: GameEventTypes, fn: (...args: any)=>void){
+  unsubscribe(type: GameEventTypes, fn: (...args: any)=>void){
     this.emitter.off(type, fn)
   }
 

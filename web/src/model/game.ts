@@ -27,12 +27,13 @@ export class GamePresenter implements Presenter {
     return this._state
   }
   
+  // TODO: remove side effects
   set state(value: GameStateExtended | undefined) {
     if(this._state){
-      this._state.subscribe('next', this.render)
-      this._state.subscribe('paused', this.handlePaused)
-      this._state.subscribe('resumed', this.handleResumed)
-      this._state.subscribe('over', this.stop)
+      this._state.unsubscribe('next', this.render)
+      this._state.unsubscribe('paused', this.handlePaused)
+      this._state.unsubscribe('resumed', this.handleResumed)
+      this._state.unsubscribe('over', this.stop)
     }
     this._state = value
     value?.subscribe('next', this.render)
