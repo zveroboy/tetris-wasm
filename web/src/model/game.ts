@@ -3,91 +3,74 @@ import { GameStateExtended, Presenter, View } from "./types"
 
 export class GamePresenter implements Presenter {
   private interval: number | null = null
-  private _view?: View
-  private _state?: GameStateExtended
-
+  
   constructor(    
+    private state: GameStateExtended,
+    private view: View,
     private game: Tetris,
     private step: number
   ) {
+    this.state.on('next', this.render)
+    this.state.on('paused', this.handlePaused)
+    this.state.on('resumed', this.handleResumed)
+    this.state.on('over', this.stop)
     
-  }
-
-  get view(): View | undefined {
-    return this._view
-  }
-  
-  set view(value: View | undefined) {
-    this._view && (this._view.presenter = undefined)
-    this._view = value
-    this._view && (this._view.presenter = this)
-  }
-
-  get state(){
-    return this._state
-  }
-  
-  // TODO: remove side effects
-  set state(value: GameStateExtended | undefined) {
-    if(this._state){
-      this._state.unsubscribe('next', this.render)
-      this._state.unsubscribe('paused', this.handlePaused)
-      this._state.unsubscribe('resumed', this.handleResumed)
-      this._state.unsubscribe('over', this.stop)
-    }
-    this._state = value
-    value?.subscribe('next', this.render)
-    value?.subscribe('paused', this.handlePaused)
-    value?.subscribe('resumed', this.handleResumed)
-    value?.subscribe('over', this.stop)
+    this.view.on('rotate', this.rotate)
+    this.view.on('moveLeft', this.moveLeft)
+    this.view.on('moveRight', this.moveRight)
+    this.view.on('moveDown', this.moveDown)
+    this.view.on('start', this.start)
+    this.view.on('pause', this.pause)
+    this.view.on('resume', this.resume)
+    this.view.on('restart', this.restart)
   }
 
   load(): void {
     return this.game.load()
   }
 
-  rotate(){
-    this.state?.updateGameState(this.game.rotate())
+  rotate = () => {
+    this.state.updateGameState(this.game.rotate())
   }
 
-  moveLeft(){
-    this.state?.updateGameState(this.game.moveLeft())
+  moveLeft = () => {
+    this.state.updateGameState(this.game.moveLeft())
   }
 
-  moveRight(){
-    this.state?.updateGameState(this.game.moveRight())
+  moveRight = () => {
+    this.state.updateGameState(this.game.moveRight())
   }
 
-  moveDown(){
-    this.state?.updateGameState(this.game.moveDown())
+  moveDown = () => {
+    this.state.updateGameState(this.game.moveDown())
   }
 
-  create(){
-    this.state?.updateGameState(this.game.create())
+  create = () => {
+    this.state.updateGameState(this.game.create())
   }
 
-  pause(){
-    this.state?.updatePaused(true)
+  pause = () => {
+    this.state.updatePaused(true)
   }
 
-  resume(){
-    this.state?.updatePaused(false)
+  resume = () => {
+    this.state.updatePaused(false)
   }
 
-  start() {
-    this.view?.addListeners()
-    this.state?.updateGameState(this.game.start())
+  start = () =>  {
+    this.view.addListeners()
+    this.state.updateGameState(this.game.start())
     this.setInterval()
   }
 
-  restart() {
+  restart = () => {
     this.create()
     this.start()
   } 
 
   stop = (state: GameStateExtended) => {
     this.clearInterval()
-    this.view?.removeListeners()
+    this.view.removeListeners()
     this.render(state)
   }
 
@@ -102,11 +85,11 @@ export class GamePresenter implements Presenter {
   }
 
   render = (state: GameStateExtended): void => {
-    this.view?.render(state)
+    this.view.render(state)
   }
 
   tick = () => {
-    this.state?.updateGameState(this.game.tick())
+    this.state.updateGameState(this.game.tick())
   }
 
   setInterval(): void {

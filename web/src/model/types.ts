@@ -1,3 +1,4 @@
+import type EventEmitter from "eventemitter3";
 import { BoardCell, GameStatus } from "./enums";
 
 export interface GameState {
@@ -7,13 +8,13 @@ export interface GameState {
 
 export type GameEventTypes = 'next' | 'paused' | 'resumed' | 'over'
 
-export interface GameStateExtended extends GameState {
+type GameEmitter = Pick<EventEmitter<GameEventTypes>, 'on' | 'off'>
+
+export interface GameStateExtended extends GameState, GameEmitter {
   paused: boolean
-  subscribe(type: GameEventTypes, fn: (...args: any)=>void): void
-  unsubscribe(type: GameEventTypes, fn: (...args: any)=>void): void
   updateGameState(state: GameState): void
   updatePaused(paused: boolean): void
-  traverse(): Generator<[number, number]>
+  blocksIndexes(): Generator<[number, number]>
 }
 
 export interface Presenter {
@@ -30,12 +31,15 @@ export interface Presenter {
 }
 
 export interface Component {
-  view?: View
+  view: View
   render(state: GameStateExtended): void
 }
 
-export interface View {
-  presenter?: Presenter 
+export type ViewEventTypes = 'rotate' | 'moveLeft' | 'moveRight' | 'moveDown' | 'start' | 'pause' | 'resume' | 'restart'
+
+type ViewEmitter = Pick<EventEmitter<ViewEventTypes>, 'on' | 'off'>
+
+export interface View extends ViewEmitter {
   render(state: GameStateExtended): void
   addComponent(component: Component): void
   addListeners(): void

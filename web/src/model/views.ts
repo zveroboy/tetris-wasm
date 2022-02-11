@@ -1,28 +1,24 @@
 import invariant from 'invariant';
+import EventEmitter from 'eventemitter3';
+
 import { Cell } from "./drawable";
 import { assertHtmlElement } from './errors';
-import type { Component, GameStateExtended, Presenter, View } from './types';
+import type { Component, GameStateExtended, View, ViewEventTypes } from './types';
 import { BoardCell, GameStatus } from './enums';
 
-
 export class GameView implements View {
-  private _presenter?: Presenter
   private components: Component[] = []
+  private emitter = new EventEmitter<ViewEventTypes>()
 
-  get presenter(): Presenter | undefined {
-    return this._presenter
-  }
+  on = this.emitter.on.bind(this.emitter)
 
-  set presenter(value: Presenter | undefined) {
-    this._presenter = value
-  }
-  
+  off = this.emitter.off.bind(this.emitter)
+
   render(state: GameStateExtended) {
     this.components.forEach((c) => c.render(state))
   }
 
   addComponent(component: Component): void {
-    component.view = this
     this.components.push(component)
   }
 
@@ -36,36 +32,39 @@ export class GameView implements View {
 
   keyListener = ({ code }: KeyboardEvent) => {
     if (code === 'ArrowUp') {
-      this.presenter?.rotate()
+      this.emitter.emit('rotate')
     } else if (code === 'ArrowLeft') {
-      this.presenter?.moveLeft()
+      this.emitter.emit('moveLeft')
     } else if (code === 'ArrowRight') {
-      this.presenter?.moveRight()
+      this.emitter.emit('moveRight')
     } else if (code === 'ArrowDown') {
-      this.presenter?.moveDown()
+      this.emitter.emit('moveDown')
     }
   }
 
   start = () => {
-    this.presenter?.start()
+    this.emitter.emit('start')
   }
   
   pause = () => {
-    this.presenter?.pause()
+    this.emitter.emit('pause')
   }
   
   resume = () => {
-    this.presenter?.resume()
+    this.emitter.emit('resume')
   }
 
   restart = () => {
-    this.presenter?.restart()
+    this.emitter.emit('restart')
   }
 }
 
 export class CanvasRenderer implements Component {
-  protected ctx: CanvasRenderingContext2D
-  constructor(root: HTMLCanvasElement){
+  private ctx: CanvasRenderingContext2D
+  constructor(
+    public view: View,
+    root: HTMLCanvasElement
+  ){
     const context = root.getContext('2d')
     invariant(context, 'Context is null');
     this.ctx = context
@@ -87,7 +86,7 @@ export class CanvasRenderer implements Component {
       w: width,
       h: height,
     })
-    for (const [r, c] of state.traverse()) {
+    for (const [r, c] of state.blocksIndexes()) {
       if(state.blocks[r][c] === BoardCell.Empty){
         continue;
       }
@@ -104,6 +103,7 @@ export class CanvasRenderer implements Component {
 
 export class CanvasOverlayRenderer implements Component {
   constructor(
+    public view: View,
     private root: HTMLDivElement
   ){
   }
@@ -125,12 +125,12 @@ export class CanvasOverlayRenderer implements Component {
 }
 
 export class ControlsRenderer implements Component {
-  private _view?: View
   private $start!: HTMLButtonElement
   private $pause!: HTMLButtonElement
   private $resume!: HTMLButtonElement
   private $restart!: HTMLButtonElement
   constructor(
+    public view: View,
     private root: HTMLElement
   ){
     const $start = this.root.querySelector<HTMLButtonElement>('[data-type="start"]')
@@ -147,15 +147,7 @@ export class ControlsRenderer implements Component {
     this.$pause = $pause
     this.$resume = $resume
     this.$restart = $restart
-  }
 
-  get view(){
-    return this._view
-  }
-  
-  set view(value: View | undefined) {
-    this.removeListeners();
-    this._view = value
     this.addListeners()
   }
 

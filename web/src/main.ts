@@ -27,17 +27,17 @@ async function main() {
     $canvas.style.setProperty('--ratio', (BOARD_SIZE.x / BOARD_SIZE.y).toString())
     
     const tetris = new ContcreteTetris()
-    const presenter = new GamePresenter(tetris, 1000)
-  
-    const state = new ConcrecetGameStateExtended();
-    presenter.state = state
     
+    const state = new ConcrecetGameStateExtended();
+
     const view = new GameView();
-    view.addComponent(new CanvasRenderer($canvas))
-    view.addComponent(new CanvasOverlayRenderer($canvasOverlay))
-    view.addComponent(new ControlsRenderer($controls))
-  
-    presenter.view = view
+    
+    view.addComponent(new CanvasRenderer(view, $canvas))
+    view.addComponent(new CanvasOverlayRenderer(view, $canvasOverlay))
+    view.addComponent(new ControlsRenderer(view, $controls))
+    
+    const presenter = new GamePresenter(state, view, tetris, 1000)
+    
     await presenter.load()
     presenter.create()
   } catch (e){

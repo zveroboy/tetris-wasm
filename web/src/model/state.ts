@@ -5,9 +5,13 @@ import { GameEventTypes, GameState, GameStateExtended } from './types';
 export class ConcrecetGameStateExtended implements GameStateExtended {
   paused = false
   blocks: BoardCell[][] = []
-  status!: GameStatus
+  status: GameStatus = GameStatus.Pending
   emitter = new EventEmitter<GameEventTypes>()
-  
+
+  on = this.emitter.on.bind(this.emitter)
+
+  off = this.emitter.off.bind(this.emitter)
+
   updateGameState(state: GameState) {
     const isOver = this.status !== GameStatus.Over && state.status === GameStatus.Over
     Object.assign(this, state)
@@ -31,7 +35,7 @@ export class ConcrecetGameStateExtended implements GameStateExtended {
     this.emitter.off(type, fn)
   }
 
-  *traverse(): Generator<[number, number]> {
+  *blocksIndexes(): Generator<[number, number]> {
     for (const r in this.blocks) {
       for (const c in this.blocks[r]) {
         yield [+r, +c]
